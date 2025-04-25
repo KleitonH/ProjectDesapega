@@ -1,4 +1,3 @@
-// src/firebaseConfig.jsx
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
 
@@ -13,7 +12,6 @@ const firebaseConfig = {
     measurementId: "G-KFWLDREJ38"
 };
 
-// Inicializa o Firebase
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
 
