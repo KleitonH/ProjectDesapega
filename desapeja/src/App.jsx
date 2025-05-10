@@ -1,12 +1,9 @@
-import { useEffect } from "react";
-import { app } from "./firebase/firebaseConfig.jsx";
+import SignInSide from './pages/SignIn/SignInSide';
 
 function App() {
-    useEffect(() => {
-        console.log("Firebase App iniciado:", app.name);
-    }, []);
-
-    return <h1>-  Desapega -</h1>;
+    return (
+        <SignInSide />
+    );
 }
 
 export default App;
