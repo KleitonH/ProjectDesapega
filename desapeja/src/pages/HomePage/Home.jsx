@@ -1,10 +1,11 @@
+import SideBar from '../../components/SideBar/SideBar.jsx';
+
 function Home() {
-  return (
-    <div>
-      <h1>Home Page</h1>
-      <p>Welcome to the home page!</p>
-    </div>
-  );
+    return (
+        <div>
+            <SideBar />
+        </div>
+    );
 }
 
 export default Home;
