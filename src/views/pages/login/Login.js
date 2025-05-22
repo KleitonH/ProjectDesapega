@@ -3,10 +3,8 @@ import { Link } from 'react-router-dom'
 import {
   CButton,
   CCard,
-  CCardBody,
-  CCardGroup,
+  CImage,
   CCol,
-  CContainer,
   CForm,
   CFormInput,
   CInputGroup,
@@ -14,71 +12,109 @@ import {
   CRow,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
-import { cilLockLocked, cilUser } from '@coreui/icons'
+import { cilLockLocked, cilUser, cibGoogle, cibFacebook } from '@coreui/icons'
 
 const Login = () => {
   return (
-    <div className="bg-body-tertiary min-vh-100 d-flex flex-row align-items-center">
-      <CContainer>
-        <CRow className="justify-content-center">
-          <CCol md={8}>
-            <CCardGroup>
-              <CCard className="p-4">
-                <CCardBody>
-                  <CForm>
-                    <h1>Login</h1>
-                    <p className="text-body-secondary">Sign In to your account</p>
-                    <CInputGroup className="mb-3">
-                      <CInputGroupText>
-                        <CIcon icon={cilUser} />
-                      </CInputGroupText>
-                      <CFormInput placeholder="Username" autoComplete="username" />
-                    </CInputGroup>
-                    <CInputGroup className="mb-4">
-                      <CInputGroupText>
-                        <CIcon icon={cilLockLocked} />
-                      </CInputGroupText>
-                      <CFormInput
-                        type="password"
-                        placeholder="Password"
-                        autoComplete="current-password"
-                      />
-                    </CInputGroup>
-                    <CRow>
-                      <CCol xs={6}>
-                        <CButton color="primary" className="px-4">
-                          Login
-                        </CButton>
-                      </CCol>
-                      <CCol xs={6} className="text-right">
-                        <CButton color="link" className="px-0">
-                          Forgot password?
-                        </CButton>
-                      </CCol>
-                    </CRow>
-                  </CForm>
-                </CCardBody>
-              </CCard>
-              <CCard className="text-white bg-primary py-5" style={{ width: '44%' }}>
-                <CCardBody className="text-center">
-                  <div>
-                    <h2>Sign up</h2>
-                    <p>
-                      Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
-                      tempor incididunt ut labore et dolore magna aliqua.
-                    </p>
-                    <Link to="/register">
-                      <CButton color="primary" className="mt-3" active tabIndex={-1}>
-                        Register Now!
-                      </CButton>
-                    </Link>
-                  </div>
-                </CCardBody>
-              </CCard>
-            </CCardGroup>
-          </CCol>
-        </CRow>
-      </CContainer>
+    <div className="container-fluid">
+      <CRow className="min-vh-100 ">
+        <CCol
+          className="d-flex justify-content-center align-items-center"
+          style={{
+            backgroundColor: '#0474BA',
+            textAlign: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <CImage
+            src="/assets/desapega.jpg"
+            width={450}
+            height={450}
+            style={{ borderRadius: '300px' }}
+          />
+        </CCol>
+        <CCol
+          className="d-flex justify-content-center align-items-center"
+          style={{ backgroundColor: 'white', textAlign: 'center' }}
+        >
+          <CCard style={{ backgroundColor: 'white', width: '60%' }}>
+            <CForm>
+              <h1 style={{ color: '#0474BA', marginBottom: '3rem' }}>Login</h1>
+              <CInputGroup className="mb-3">
+                <CInputGroupText
+                  style={{
+                    marginBottom: '15px',
+                    border: 'none',
+                    backgroundColor: '#D9D9D9',
+                    color: 'black',
+                  }}
+                >
+                  <CIcon icon={cilUser} />
+                </CInputGroupText>
+                <CFormInput
+                  style={{
+                    marginBottom: '15px',
+                    border: 'none',
+                    backgroundColor: '#D9D9D9',
+                    color: 'black',
+                  }}
+                  placeholder="E-mail"
+                  autoComplete="email"
+                />
+              </CInputGroup>
+              <CInputGroup className="mb-3">
+                <CInputGroupText
+                  style={{
+                    marginBottom: '15px',
+                    border: 'none',
+                    backgroundColor: '#D9D9D9',
+                    color: 'black',
+                  }}
+                >
+                  <CIcon icon={cilLockLocked} />
+                </CInputGroupText>
+                <CFormInput
+                  style={{
+                    marginBottom: '15px',
+                    border: 'none',
+                    backgroundColor: '#D9D9D9',
+                    color: 'black',
+                  }}
+                  type="password"
+                  placeholder="Senha"
+                  autoComplete="current-password"
+                />
+              </CInputGroup>
+            </CForm>
+            <CButton
+              style={{ backgroundColor: '#E88011', color: '#0474BA', fontSize: '1rem' }}
+              className="px-4"
+            >
+              Entrar
+            </CButton>
+            <Link
+              to="/register"
+              style={{ textDecoration: 'none', color: 'black', textAlign: 'initial' }}
+            >
+              <p>Não possui uma conta? Cadastre-se</p>
+            </Link>
+            <br />
+            <div>
+              <h4 style={{ color: '#0474BA', marginBottom: ' 1rem' }}>Entrar com</h4>
+              <Link to="https://www.facebook.com/?locale=pt_BR">
+                <CIcon
+                  icon={cibFacebook}
+                  size="xl"
+                  style={{ marginRight: '1.2rem', color: 'black' }}
+                />
+              </Link>
+              <Link to="https://www.google.com/webhp?hl=pt-BR&sa=X&ved=0ahUKEwjm2oTh5bWNAxVzq5UCHU56LmMQPAgI">
+                <CIcon icon={cibGoogle} size="xl" style={{ color: 'black' }} />
+              </Link>
+            </div>
+          </CCard>
+        </CCol>
+      </CRow>
     </div>
   )
 }

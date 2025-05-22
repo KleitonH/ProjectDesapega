@@ -1,10 +1,10 @@
 import React from 'react'
+import { Link } from 'react-router-dom'
 import {
   CButton,
   CCard,
-  CCardBody,
+  CImage,
   CCol,
-  CContainer,
   CForm,
   CFormInput,
   CInputGroup,
@@ -12,58 +12,125 @@ import {
   CRow,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
-import { cilLockLocked, cilUser } from '@coreui/icons'
+import { cilLockLocked, cilUser, cilCalendar, cilAt } from '@coreui/icons'
 
 const Register = () => {
   return (
-    <div className="bg-body-tertiary min-vh-100 d-flex flex-row align-items-center">
-      <CContainer>
-        <CRow className="justify-content-center">
-          <CCol md={9} lg={7} xl={6}>
-            <CCard className="mx-4">
-              <CCardBody className="p-4">
-                <CForm>
-                  <h1>Register</h1>
-                  <p className="text-body-secondary">Create your account</p>
-                  <CInputGroup className="mb-3">
-                    <CInputGroupText>
-                      <CIcon icon={cilUser} />
-                    </CInputGroupText>
-                    <CFormInput placeholder="Username" autoComplete="username" />
-                  </CInputGroup>
-                  <CInputGroup className="mb-3">
-                    <CInputGroupText>@</CInputGroupText>
-                    <CFormInput placeholder="Email" autoComplete="email" />
-                  </CInputGroup>
-                  <CInputGroup className="mb-3">
-                    <CInputGroupText>
-                      <CIcon icon={cilLockLocked} />
-                    </CInputGroupText>
-                    <CFormInput
-                      type="password"
-                      placeholder="Password"
-                      autoComplete="new-password"
-                    />
-                  </CInputGroup>
-                  <CInputGroup className="mb-4">
-                    <CInputGroupText>
-                      <CIcon icon={cilLockLocked} />
-                    </CInputGroupText>
-                    <CFormInput
-                      type="password"
-                      placeholder="Repeat password"
-                      autoComplete="new-password"
-                    />
-                  </CInputGroup>
-                  <div className="d-grid">
-                    <CButton color="success">Create Account</CButton>
-                  </div>
-                </CForm>
-              </CCardBody>
-            </CCard>
-          </CCol>
-        </CRow>
-      </CContainer>
+    <div className="container-fluid">
+      <CRow className="min-vh-100 ">
+        <CCol
+          className="d-flex justify-content-center align-items-center"
+          style={{
+            backgroundColor: '#0474BA',
+            textAlign: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <CImage
+            src="/assets/desapega.jpg"
+            width={450}
+            height={450}
+            style={{ borderRadius: '300px' }}
+          />
+        </CCol>
+        <CCol
+          className="d-flex justify-content-center align-items-center"
+          style={{ backgroundColor: 'white', textAlign: 'center' }}
+        >
+          <CCard style={{ backgroundColor: 'white', width: '60%' }}>
+            <CForm>
+              <h1 style={{ color: '#0474BA', marginBottom: '3rem' }}>Cadastro</h1>
+              <CInputGroup className="mb-3">
+                <CInputGroupText
+                  style={{
+                    marginBottom: '15px',
+                    border: 'none',
+                    backgroundColor: '#D9D9D9',
+                    color: 'black',
+                  }}
+                >
+                  <CIcon icon={cilUser} />
+                </CInputGroupText>
+                <CFormInput
+                  style={{
+                    marginBottom: '15px',
+                    border: 'none',
+                    backgroundColor: '#D9D9D9',
+                    color: 'black',
+                  }}
+                  placeholder="Nome Completo"
+                  autoComplete="name"
+                />
+              </CInputGroup>
+              <CInputGroup className="mb-3">
+                <CInputGroupText
+                  style={{
+                    marginBottom: '15px',
+                    border: 'none',
+                    backgroundColor: '#D9D9D9',
+                    color: 'black',
+                  }}
+                >
+                  <CIcon icon={cilAt} />
+                </CInputGroupText>
+                <CFormInput
+                  style={{
+                    marginBottom: '15px',
+                    border: 'none',
+                    backgroundColor: '#D9D9D9',
+                    color: 'black',
+                  }}
+                  placeholder="E-mail"
+                  autoComplete="email"
+                />
+              </CInputGroup>
+              <CInputGroup className="mb-3">
+                <CInputGroupText
+                  style={{
+                    marginBottom: '15px',
+                    border: 'none',
+                    backgroundColor: '#D9D9D9',
+                    color: 'black',
+                  }}
+                >
+                  <CIcon icon={cilLockLocked} />
+                </CInputGroupText>
+                <CFormInput
+                  style={{
+                    marginBottom: '15px',
+                    border: 'none',
+                    backgroundColor: '#D9D9D9',
+                    color: 'black',
+                  }}
+                  type="password"
+                  placeholder="Senha"
+                  autoComplete="current-password"
+                />
+              </CInputGroup>
+              <p style={{ color: 'black', textAlign: 'initial' }}>Data de Nascimento</p>
+              <CInputGroup className="mb-3">
+                <CFormInput
+                  style={{
+                    marginBottom: '15px',
+                    border: 'none',
+                    backgroundColor: '#D9D9D9',
+                    color: 'black',
+                  }}
+                  type="date"
+                  placeholder="Data de Nascimento"
+                  autoComplete="date"
+                />
+              </CInputGroup>
+            </CForm>
+            <CButton
+              style={{ backgroundColor: '#E88011', color: '#0474BA', fontSize: '1rem' }}
+              className="px-4"
+            >
+              Cadastre-se
+            </CButton>
+          </CCard>
+        </CCol>
+      </CRow>
     </div>
   )
 }
