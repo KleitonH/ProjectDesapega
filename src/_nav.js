@@ -4,6 +4,7 @@ import {
   cilBell,
   cilCalculator,
   cilChartPie,
+  cilCommentBubble,
   cilCursor,
   cilDescription,
   cilDrop,
@@ -21,8 +22,14 @@ const _nav = [
   {
     component: CNavItem,
     name: 'Pagina Inicial',
-    to: '/dashboard',
+    to: '/home-page',
     icon: <CIcon icon={cilHome} customClassName="nav-icon" />,
+  },
+  {
+    component: CNavItem,
+    name: 'Conversas',
+    to: '/chat-page',
+    icon: <CIcon icon={cilCommentBubble} customClassName="nav-icon" />,
   },
   // {
   //   component: CNavTitle,
