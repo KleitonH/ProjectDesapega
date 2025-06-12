@@ -27,7 +27,7 @@ const Login = () => {
           }}
         >
           <CImage
-            src="/assets/desapega.jpg"
+            src="./src/assets/images/desapega.png"
             width={450}
             height={450}
             style={{ borderRadius: '300px' }}
