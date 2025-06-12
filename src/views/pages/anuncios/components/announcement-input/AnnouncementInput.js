@@ -1,20 +1,9 @@
 import React, { useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
-import {
-  CButton,
-  CCard,
-  CImage,
-  CCol,
-  CForm,
-  CFormInput,
-  CInputGroup,
-  CInputGroupText,
-  CRow,
-} from '@coreui/react'
+import { CButton, CCard, CImage, CCol, CForm, CFormInput, CRow } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
-import { cilCamera, cilUser, cibGoogle, cibFacebook } from '@coreui/icons'
+import { cilCamera } from '@coreui/icons'
 
-const CriarAnuncio = () => {
+const AnnouncementInput = () => {
   const [imagem, setImagem] = useState(null)
   const inputRef = useRef(null)
 
@@ -143,4 +132,4 @@ const CriarAnuncio = () => {
   )
 }
 
-export default CriarAnuncio
+export default AnnouncementInput
