@@ -27,7 +27,7 @@ const Login = () => {
     setError(null)
     try {
       await signInWithEmailAndPassword(auth, email, password)
-      navigate('/home-page') // redireciona para sua HomePage.js
+      navigate('/home-page')
     } catch (err) {
       setError('Email ou senha inválidos.')
     }

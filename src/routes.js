@@ -2,8 +2,10 @@ import React from 'react'
 
 const HomePage = React.lazy(() => import('./views/pages/home-page/HomePage'))
 const ChatPage = React.lazy(() => import('./views/pages/chat-page/ChatPage'))
+const CriarAnuncio = React.lazy(() => import('./views/pages/anuncios/CriarAnuncio'))
 const Colors = React.lazy(() => import('./views/theme/colors/Colors'))
 const Typography = React.lazy(() => import('./views/theme/typography/Typography'))
+const Profile = React.lazy(() => import('./views/pages/profile/Profile'))
 
 // Base
 const Accordion = React.lazy(() => import('./views/base/accordion/Accordion'))
@@ -56,6 +58,8 @@ const routes = [
   { path: '/', exact: true, name: 'Home' },
   { path: '/home-page', name: 'Página Inicial', element: HomePage },
   { path: '/chat-page', name: 'Conversas', element: ChatPage },
+  { path: '/anuncios', name: 'Meus Anúncios', element: CriarAnuncio },
+  { path: '/profile', name: 'Perfil', element: Profile },
   { path: '/theme', name: 'Theme', element: Colors, exact: true },
   { path: '/theme/colors', name: 'Colors', element: Colors },
   { path: '/theme/typography', name: 'Typography', element: Typography },
