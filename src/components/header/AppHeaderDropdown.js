@@ -24,7 +24,10 @@ import CIcon from '@coreui/icons-react'
 
 import avatar2 from './../../assets/images/avatars/2.jpg'
 
+import { useNavigate } from 'react-router-dom'
+
 const AppHeaderDropdown = () => {
+  const navigate = useNavigate()
   return (
     <CDropdown variant="nav-item">
       <CDropdownToggle placement="bottom-end" className="py-0 pe-0" caret={false}>
@@ -69,7 +72,7 @@ const AppHeaderDropdown = () => {
           <CIcon icon={cilSettings} className="me-2" />
           Settings
         </CDropdownItem>
-        <CDropdownItem href="#">
+        <CDropdownItem onClick={() => navigate('/chat-page')}>
           <CIcon icon={cilCreditCard} className="me-2" />
           Payments
           <CBadge color="secondary" className="ms-2">
