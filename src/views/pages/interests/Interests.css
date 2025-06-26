@@ -1,0 +1,16 @@
+.header-style {
+  background-color: #2E323D;
+  color: white;
+  font-weight: bold;
+  height: 3rem;
+  padding: 0.5rem;
+  font-size: 1.5rem;
+  text-align: center;
+}
+
+.cell-style {
+  height: 3rem;
+  padding: 0.5rem;
+  font-size: 1.2rem;
+  text-align: center;
+}
