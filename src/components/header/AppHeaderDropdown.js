@@ -22,9 +22,7 @@ import {
 } from '@coreui/icons'
 import CIcon from '@coreui/icons-react'
 import { useNavigate } from 'react-router-dom'
-
 import avatar2 from './../../assets/images/avatars/2.jpg'
-
 const AppHeaderDropdown = () => {
   const navigate = useNavigate()
   return (

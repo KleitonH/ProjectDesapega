@@ -8,6 +8,7 @@ import {
   CFormInput,
   CButton,
   CAvatar,
+  CCardTitle,
 } from '@coreui/react'
 import avatar8 from '../../../assets/images/avatars/8.jpg'
 import CIcon from '@coreui/icons-react'
@@ -100,14 +101,14 @@ const ChatPage = () => {
     <CContainer
       fluid
       className="overflow-hidden rounded"
-      style={{ maxHeight: '70vh', height: '70vh' }}
+      style={{ maxHeight: '80vh', height: '80vh' }}
     >
       <CRow className="h-100">
         {/* Coluna de Contatos */}
         <CCol md={4} className="border-end p-0 d-flex flex-column" style={{ height: '100%' }}>
           {/* Título fixo */}
-          <div className="p-3 border-bottom bg-dark">
-            <h5>Contatos</h5>
+          <div className="p-3 d-flex border-bottom bg-dark">
+            <h4 className='text-white my-auto'>Contatos</h4>
           </div>
 
           {/* Lista rolável */}

@@ -1,5 +1,6 @@
-import React from 'react'
-import { Link } from 'react-router-dom'
+// src/views/pages/register/Register.jsx
+import React, { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   CButton,
   CCard,
@@ -13,8 +14,44 @@ import {
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import { cilLockLocked, cilUser, cilCalendar, cilAt } from '@coreui/icons'
+import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth'
+import { doc, setDoc } from 'firebase/firestore'
+import { auth, db } from 'src/firebase/firebaseConfig'
 
 const Register = () => {
+  const [name, setName] = useState('')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [birthDate, setBirthDate] = useState('')
+  const [error, setError] = useState(null)
+  const navigate = useNavigate()
+
+  const handleRegister = async (e) => {
+    e.preventDefault()
+    setError(null)
+
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password)
+      const user = userCredential.user
+
+      // Atualiza o nome no perfil do auth
+      await updateProfile(user, { displayName: name })
+
+      // Salva no Firestore (coleção "users", documento com ID do usuário)
+      await setDoc(doc(db, 'users', user.uid), {
+        name,
+        email,
+        birthDate,
+        createdAt: new Date().toISOString(),
+      })
+
+      navigate('/home-page')
+    } catch (err) {
+      console.error('Erro no registro:', err)
+      setError('Erro ao criar conta. Verifique os dados.')
+    }
+  }
+
   return (
     <div className="container-fluid">
       <CRow className="min-vh-100 ">
@@ -27,7 +64,7 @@ const Register = () => {
           }}
         >
           <CImage
-            src="/assets/desapega.jpg"
+            src="./src/assets/images/desapega.png"
             width={450}
             height={450}
             style={{ borderRadius: '300px' }}
@@ -37,97 +74,73 @@ const Register = () => {
           className="d-flex justify-content-center align-items-center"
           style={{ backgroundColor: 'white', textAlign: 'center' }}
         >
-          <CCard style={{ backgroundColor: 'white', width: '60%' }}>
-            <CForm>
+          <CCard style={{ backgroundColor: 'white', width: '60%' }} className="p-4">
+            <CForm onSubmit={handleRegister}>
               <h1 style={{ color: '#0474BA', marginBottom: '3rem' }}>Cadastro</h1>
+
               <CInputGroup className="mb-3">
-                <CInputGroupText
-                  style={{
-                    marginBottom: '15px',
-                    border: 'none',
-                    backgroundColor: '#D9D9D9',
-                    color: 'black',
-                  }}
-                >
+                <CInputGroupText style={{ backgroundColor: '#D9D9D9', color: 'black' }}>
                   <CIcon icon={cilUser} />
                 </CInputGroupText>
                 <CFormInput
-                  style={{
-                    marginBottom: '15px',
-                    border: 'none',
-                    backgroundColor: '#D9D9D9',
-                    color: 'black',
-                  }}
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
                   placeholder="Nome Completo"
                   autoComplete="name"
+                  style={{ backgroundColor: '#D9D9D9', color: 'black' }}
                 />
               </CInputGroup>
+
               <CInputGroup className="mb-3">
-                <CInputGroupText
-                  style={{
-                    marginBottom: '15px',
-                    border: 'none',
-                    backgroundColor: '#D9D9D9',
-                    color: 'black',
-                  }}
-                >
+                <CInputGroupText style={{ backgroundColor: '#D9D9D9', color: 'black' }}>
                   <CIcon icon={cilAt} />
                 </CInputGroupText>
                 <CFormInput
-                  style={{
-                    marginBottom: '15px',
-                    border: 'none',
-                    backgroundColor: '#D9D9D9',
-                    color: 'black',
-                  }}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   placeholder="E-mail"
                   autoComplete="email"
+                  style={{ backgroundColor: '#D9D9D9', color: 'black' }}
                 />
               </CInputGroup>
+
               <CInputGroup className="mb-3">
-                <CInputGroupText
-                  style={{
-                    marginBottom: '15px',
-                    border: 'none',
-                    backgroundColor: '#D9D9D9',
-                    color: 'black',
-                  }}
-                >
+                <CInputGroupText style={{ backgroundColor: '#D9D9D9', color: 'black' }}>
                   <CIcon icon={cilLockLocked} />
                 </CInputGroupText>
                 <CFormInput
-                  style={{
-                    marginBottom: '15px',
-                    border: 'none',
-                    backgroundColor: '#D9D9D9',
-                    color: 'black',
-                  }}
                   type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   placeholder="Senha"
-                  autoComplete="current-password"
+                  autoComplete="new-password"
+                  style={{ backgroundColor: '#D9D9D9', color: 'black' }}
                 />
               </CInputGroup>
+
               <p style={{ color: 'black', textAlign: 'initial' }}>Data de Nascimento</p>
               <CInputGroup className="mb-3">
+                <CInputGroupText style={{ backgroundColor: '#D9D9D9', color: 'black' }}>
+                  <CIcon icon={cilCalendar} />
+                </CInputGroupText>
                 <CFormInput
-                  style={{
-                    marginBottom: '15px',
-                    border: 'none',
-                    backgroundColor: '#D9D9D9',
-                    color: 'black',
-                  }}
                   type="date"
-                  placeholder="Data de Nascimento"
-                  autoComplete="date"
+                  value={birthDate}
+                  onChange={(e) => setBirthDate(e.target.value)}
+                  style={{ backgroundColor: '#D9D9D9', color: 'black' }}
                 />
               </CInputGroup>
+
+              <CButton
+                type="submit"
+                style={{ backgroundColor: '#E88011', color: '#0474BA', fontSize: '1rem' }}
+                className="px-4"
+              >
+                Cadastre-se
+              </CButton>
+
+              {error && <p style={{ color: 'red', marginTop: '1rem' }}>{error}</p>}
             </CForm>
-            <CButton
-              style={{ backgroundColor: '#E88011', color: '#0474BA', fontSize: '1rem' }}
-              className="px-4"
-            >
-              Cadastre-se
-            </CButton>
           </CCard>
         </CCol>
       </CRow>
