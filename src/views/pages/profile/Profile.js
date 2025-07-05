@@ -1,7 +1,7 @@
 import React from 'react'
 import { CButton, CCard, CCol, CRow, CAvatar } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
-import { cilLibrary, cilFilterFrames } from '@coreui/icons'
+import { cilFilterFrames, cilTags } from '@coreui/icons'
 import avatar8 from '../../../assets/images/avatars/8.jpg'
 import './Profile.css'
 
@@ -57,7 +57,7 @@ const Profile = () => {
               </h5>
 
               <CCard className="icon-card-style first">
-                <CIcon className="mt-2" icon={cilLibrary} size="xxl" />
+                <CIcon className="mt-2" icon={cilTags} size="xxl" />
                 <p className="label-style">Você possui</p>
                 <p className="bold-style">{usuarioMock.totalAnuncios} anúncios</p>
               </CCard>

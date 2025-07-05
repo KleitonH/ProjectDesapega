@@ -1,10 +1,13 @@
 import React from 'react'
 import { CButton, CCard, CCol, CRow } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
-import { cilTrash, cilPencil } from '@coreui/icons'
+import { cilTrash, cilPencil, cilPlus } from '@coreui/icons'
 import './Interests.css'
+import { useNavigate } from 'react-router-dom'
 
 const Interests = () => {
+  const navigate = useNavigate()
+
   const produtos = [
     { id: 1, titulo: 'Playstation 5 Pro', valor: '2900' },
     { id: 2, titulo: 'Xbox Series X', valor: '2700' },
@@ -18,9 +21,17 @@ const Interests = () => {
     <div className="container mt-4">
       <CCard>
         <div className="mx-auto" style={{ maxWidth: '1000px', width: '100%' }}>
-          <h1 style={{ marginBottom: '3rem', marginTop: '1rem', textAlign: 'center' }}>
-            Meus Interesses
-          </h1>
+          <CRow>
+            <CCol md={9}>
+              <h1 style={{ marginBottom: '2rem', marginTop: '3rem' }}>Meus Interesses</h1>
+            </CCol>
+            <CCol md={3}>
+              <CButton size="m" onClick={() => navigate('/interest-input')} className="add-style">
+                <CIcon size="lg" icon={cilPlus} className="me-2" />
+                Novo Interesse
+              </CButton>
+            </CCol>
+          </CRow>
 
           <CRow className="mt-4">
             <CCol md={4} className="header-style">
@@ -44,12 +55,17 @@ const Interests = () => {
                   R$ {produto.valor}
                 </CCol>
                 <CCol md={4} className="cell-style">
-                  <CButton size="m" color="info" className="me-2">
+                  <CButton size="m" className="me-2">
                     <CIcon size="lg" icon={cilPencil} className="me-2" />
                     Editar
                   </CButton>
-                  <CButton size="m" color="danger">
-                    <CIcon size="lg" icon={cilTrash} className="me-2" />
+                  <CButton size="m">
+                    <CIcon
+                      size="lg"
+                      icon={cilTrash}
+                      className="me-2"
+                      style={{ '--ci-primary-color': 'red' }}
+                    />
                     Excluir
                   </CButton>
                 </CCol>

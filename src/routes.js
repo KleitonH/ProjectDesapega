@@ -2,11 +2,23 @@ import React from 'react'
 
 const HomePage = React.lazy(() => import('./views/pages/home-page/HomePage'))
 const ChatPage = React.lazy(() => import('./views/pages/chat-page/ChatPage'))
-const CriarAnuncio = React.lazy(() => import('./views/pages/anuncios/CriarAnuncio'))
+const MyAnnouncements = React.lazy(() => import('./views/pages/my-announcements/MyAnnouncements'))
+const Announcements = React.lazy(
+  () => import('./views/pages/my-announcements/components/announcements/Announcements'),
+)
+const Interests = React.lazy(
+  () => import('./views/pages/my-announcements/components/interests/Interests'),
+)
+const InterestInput = React.lazy(
+  () => import('./views/pages/my-announcements/inputs/interest-input/InterestInput'),
+)
+const AnnouncementInput = React.lazy(
+  () => import('./views/pages/my-announcements/inputs/announcement-input/AnnouncementInput'),
+)
+const Proposal = React.lazy(() => import('./views/pages/proposal/Proposal'))
 const Colors = React.lazy(() => import('./views/theme/colors/Colors'))
 const Typography = React.lazy(() => import('./views/theme/typography/Typography'))
 const Profile = React.lazy(() => import('./views/pages/profile/Profile'))
-const Interests = React.lazy(() => import('./views/pages/interests/Interests'))
 
 // Base
 const Accordion = React.lazy(() => import('./views/base/accordion/Accordion'))
@@ -59,9 +71,13 @@ const routes = [
   { path: '/', exact: true, name: 'Home' },
   { path: '/home-page', name: 'Página Inicial', element: HomePage },
   { path: '/chat-page', name: 'Conversas', element: ChatPage },
-  { path: '/anuncios', name: 'Meus Anúncios', element: CriarAnuncio },
+  { path: '/my-announcements', name: 'Anúncios', element: MyAnnouncements },
+  { path: '/announcements', name: 'Meus Anúncios', element: Announcements },
+  { path: '/interests', name: 'Meus Interesses', element: Interests },
+  { path: '/interest-input', name: 'Criar Interesse', element: InterestInput },
+  { path: '/announcement-input', name: 'Criar Anúncio', element: AnnouncementInput },
+  { path: '/proposal', name: 'Propostas Enviadas', element: Proposal },
   { path: '/profile', name: 'Perfil', element: Profile },
-  { path: '/interests', name: 'Meu Interesses', element: Interests },
   { path: '/theme', name: 'Theme', element: Colors, exact: true },
   { path: '/theme/colors', name: 'Colors', element: Colors },
   { path: '/theme/typography', name: 'Typography', element: Typography },

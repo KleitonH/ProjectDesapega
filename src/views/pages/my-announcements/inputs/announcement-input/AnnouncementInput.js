@@ -1,9 +1,12 @@
 import React, { useRef, useState } from 'react'
 import { CButton, CCard, CImage, CCol, CForm, CFormInput, CRow } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
-import { cilCamera } from '@coreui/icons'
+import { cilCamera, cilChevronLeft } from '@coreui/icons'
+import { useNavigate } from 'react-router-dom'
 
 const AnnouncementInput = () => {
+  const navigate = useNavigate()
+
   const [imagem, setImagem] = useState(null)
   const inputRef = useRef(null)
 
@@ -23,6 +26,14 @@ const AnnouncementInput = () => {
   return (
     <div className="container mt-4">
       <CCard>
+        <CButton
+          size="m"
+          onClick={() => navigate('/announcements')}
+          style={{ width: '5rem', marginLeft: '3rem', marginTop: '2rem' }}
+        >
+          <CIcon size="xxl" icon={cilChevronLeft} className="me-2" />
+        </CButton>
+
         <div className="mx-auto" style={{ maxWidth: '850px', width: '100%' }}>
           <h1 style={{ marginBottom: '3rem', marginTop: '1rem', textAlign: 'center' }}>
             Cadastro de Anúncio
