@@ -43,6 +43,7 @@ const Register = () => {
         email,
         birthDate,
         createdAt: new Date().toISOString(),
+        role: 'comprador',
       })
 
       navigate('/home-page')

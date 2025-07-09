@@ -15,14 +15,16 @@ import { AppSidebarNav } from './AppSidebarNav'
 
 import { logo } from 'src/assets/brand/logo'
 import { sygnet } from 'src/assets/brand/sygnet'
-
-// sidebar nav config
-import navigation from '../_nav'
+import { getNavItemsByRole } from '../_nav'
+import { useContext } from 'react'
+import { AuthContext } from '../context/AuthContext'
 
 const AppSidebar = () => {
   const dispatch = useDispatch()
   const unfoldable = useSelector((state) => state.sidebarUnfoldable)
   const sidebarShow = useSelector((state) => state.sidebarShow)
+  const { role } = useContext(AuthContext)
+  const navItems = getNavItemsByRole(role || 'comprador')
 
   return (
     <CSidebar
@@ -46,7 +48,7 @@ const AppSidebar = () => {
           onClick={() => dispatch({ type: 'set', sidebarShow: false })}
         />
       </CSidebarHeader>
-      <AppSidebarNav items={navigation} />
+      <AppSidebarNav items={navItems} />
       <CSidebarFooter className="border-top d-none d-lg-flex">
         <CSidebarToggler
           onClick={() => dispatch({ type: 'set', sidebarUnfoldable: !unfoldable })}
