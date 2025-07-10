@@ -64,7 +64,7 @@ const InterestInput = () => {
       setDescription(interestData.description || '')
     }
   }, [location.state])
-  
+
   // Carrega categorias, subcategorias e produtos
   useEffect(() => {
     const loadData = async () => {
@@ -76,7 +76,7 @@ const InterestInput = () => {
       }))
       setCategories(loadedCategories)
 
-      // 2. Se estiver editando, processa subcategorias
+      // 2. Se estiver editando, processa os dados do interesse
       if (location.state?.editMode) {
         const { category_id, subcategory_id, product_id } = location.state.interestData
 
@@ -117,7 +117,54 @@ const InterestInput = () => {
     }
 
     loadData()
-  }, [location.state]) // Apenas location.state como dependência
+  }, [location.state])
+
+  // Adiciona este novo useEffect para carregar subcategorias quando uma categoria é selecionada
+  useEffect(() => {
+    const loadSubcategories = async () => {
+      if (selectedCategory) {
+        const categoryDoc = await getDoc(doc(db, 'categories', selectedCategory))
+        if (categoryDoc.exists()) {
+          setSubcategories(categoryDoc.data().subcategories || [])
+        }
+      } else {
+        setSubcategories([])
+        setSelectedSubcategory('')
+      }
+    }
+
+    // Só executa se não estiver no modo de edição (para evitar duplicação)
+    if (!location.state?.editMode) {
+      loadSubcategories()
+    }
+  }, [selectedCategory, location.state?.editMode])
+
+  // Adiciona este novo useEffect para carregar produtos quando uma subcategoria é selecionada
+  useEffect(() => {
+    const loadProducts = async () => {
+      if (selectedSubcategory) {
+        const productsQuery = query(
+          collection(db, 'products'),
+          where('subcategories_id', '==', selectedSubcategory),
+        )
+        const productsSnapshot = await getDocs(productsQuery)
+        setProducts(
+          productsSnapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          })),
+        )
+      } else {
+        setProducts([])
+        setSelectedProduct('')
+      }
+    }
+
+    // Só executa se não estiver no modo de edição (para evitar duplicação)
+    if (!location.state?.editMode) {
+      loadProducts()
+    }
+  }, [selectedSubcategory, location.state?.editMode])
 
   const handleSubmit = async (e) => {
     e.preventDefault()

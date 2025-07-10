@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   CContainer,
   CRow,
@@ -13,58 +13,222 @@ import {
 } from '@coreui/react'
 import './HomePage.css'
 import { motion, AnimatePresence } from 'framer-motion'
-
-const produtos = [
-  {
-    id: 1,
-    nome: 'Iphone XS',
-    descricao:
-      'Descrição do cliente: Busco um iphone Xs que esteja funcionando totalmente, pode ter pequenas avarias',
-    imagem:
-      'https://rukminim2.flixcart.com/blobio/400/400/20181015/blobio-20181015_ql5avu84.jpg?q=90',
-    preco: 'R$1400',
-  },
-  {
-    id: 2,
-    nome: 'Iphone XS',
-    descricao: 'Descrição do cliente: Um iphone Xs com 64gb tá ótimo',
-    imagem:
-      'https://rukminim2.flixcart.com/blobio/400/400/20181015/blobio-20181015_ql5avu84.jpg?q=90',
-    preco: 'R$1500',
-  },
-  {
-    id: 3,
-    nome: 'Iphone XS',
-    descricao: 'Descrição do cliente: Funcionando já tá ótimo',
-    imagem:
-      'https://rukminim2.flixcart.com/blobio/400/400/20181015/blobio-20181015_ql5avu84.jpg?q=90',
-    preco: 'R$1450',
-  },
-  {
-    id: 4,
-    nome: 'Iphone XS',
-    descricao: 'Descrição do cliente: Tem que estar em perfeitas condições, quase seminovo',
-    imagem:
-      'https://rukminim2.flixcart.com/blobio/400/400/20181015/blobio-20181015_ql5avu84.jpg?q=90',
-    preco: 'R$1300',
-  },
-]
+import {
+  auth,
+  db,
+  collection,
+  query,
+  where,
+  getDocs,
+  doc,
+  getDoc,
+  setDoc,
+  onSnapshot,
+} from 'src/firebase/firebaseConfig'
+import { onAuthStateChanged } from 'firebase/auth'
 
 const HomePage = () => {
   const [index, setIndex] = useState(0)
-  const [direction, setDirection] = useState(null) // 'up' ou 'down'
-  const [status, setStatus] = useState({}) // {id: 'accepted' ou 'rejected'}
+  const [direction, setDirection] = useState(null)
+  const [status, setStatus] = useState({})
+  const [interests, setInterests] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [userRole, setUserRole] = useState(null)
+  const [currentUser, setCurrentUser] = useState(null)
 
-  const handleAction = (type) => {
+  useEffect(() => {
+    const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        console.log('Usuário autenticado:', user.uid)
+        setCurrentUser(user)
+
+        try {
+          // Buscar dados do usuário usando UID como ID do documento (mais eficiente)
+          const userDocRef = doc(db, 'users', user.uid)
+          const userDoc = await getDoc(userDocRef)
+
+          console.log('Documento do usuário:', {
+            exists: userDoc.exists(),
+            data: userDoc.exists() ? userDoc.data() : null,
+          })
+
+          if (userDoc.exists()) {
+            const userData = userDoc.data()
+            console.log('Dados do usuário encontrado:', userData)
+
+            if (userData.role) {
+              setUserRole(userData.role)
+              console.log('Role definida:', userData.role)
+
+              if (userData.role === 'vendedor') {
+                console.log('Carregando interesses para vendedor...')
+                await loadSellerInterests(user.uid)
+              }
+            } else {
+              console.warn('Usuário não possui campo "role" definido')
+            }
+          } else {
+            console.warn('Nenhum documento de usuário encontrado para o UID:', user.uid)
+          }
+        } catch (error) {
+          console.error('Erro ao buscar dados do usuário:', error)
+        }
+      } else {
+        console.log('Nenhum usuário autenticado')
+        setCurrentUser(null)
+        setUserRole(null)
+      }
+      setLoading(false)
+    })
+
+    return () => unsubscribeAuth()
+  }, [])
+
+  // Carregar interesses para vendedores com listener em tempo real
+  const loadSellerInterests = async (userId) => {
+    try {
+      // 1. Buscar anúncios do vendedor
+      const announcementsQuery = query(
+        collection(db, 'announcements'),
+        where('user_id', '==', userId),
+      )
+
+      const unsubscribeAnnouncements = onSnapshot(
+        announcementsQuery,
+        async (announcementsSnapshot) => {
+          if (announcementsSnapshot.empty) {
+            console.log('Nenhum anúncio encontrado para este vendedor')
+            setInterests([])
+            return
+          }
+
+          // 2. Pegar product_ids dos anúncios
+          const productIds = announcementsSnapshot.docs.map((doc) => doc.data().product_id)
+
+          if (productIds.length === 0) {
+            console.log('Nenhum product_id encontrado nos anúncios')
+            setInterests([])
+            return
+          }
+
+          // 3. Buscar TODAS as propostas deste vendedor
+          const proposalsQuery = query(
+            collection(db, 'proposals'),
+            where('seller_id', '==', userId),
+          )
+          const proposalsSnapshot = await getDocs(proposalsQuery)
+
+          // Criar um Set com os interestIds já utilizados
+          const usedInterestIds = new Set(
+            proposalsSnapshot.docs.map((doc) => doc.data().interest_id),
+          )
+
+          // 4. Buscar interesses em lotes
+          const batchSize = 10
+          let allInterests = []
+
+          for (let i = 0; i < productIds.length; i += batchSize) {
+            const batch = productIds.slice(i, i + batchSize)
+
+            // Primeiro busca todos os interesses possíveis
+            const interestsQuery = query(
+              collection(db, 'interests'),
+              where('product_id', 'in', batch),
+              where('user_id', '!=', userId),
+            )
+
+            const interestsSnapshot = await getDocs(interestsQuery)
+
+            // Filtrar localmente para verificar os interestIds
+            const filteredInterests = interestsSnapshot.docs
+              .filter((doc) => !usedInterestIds.has(doc.id)) // Filtra interesses já usados
+              .map((doc) => {
+                const interestData = doc.data()
+                return {
+                  id: doc.id,
+                  ...interestData,
+                }
+              })
+
+            allInterests = [...allInterests, ...filteredInterests]
+          }
+
+          // 5. Buscar nomes dos produtos para os interesses filtrados
+          if (allInterests.length > 0) {
+            const productIdsInInterests = [...new Set(allInterests.map((i) => i.product_id))]
+            const productsSnapshot = await getDocs(
+              query(
+                collection(db, 'products'),
+                where('__name__', 'in', productIdsInInterests.slice(0, 10)),
+              ),
+            )
+
+            const productIdToName = {}
+            productsSnapshot.forEach((doc) => {
+              productIdToName[doc.id] = doc.data().name || doc.data().label || 'Produto sem nome'
+            })
+
+            // Adicionar os nomes aos interesses
+            allInterests = allInterests.map((interest) => ({
+              ...interest,
+              product_name: productIdToName[interest.product_id],
+            }))
+          }
+
+          console.log('Interesses filtrados:', allInterests)
+          setInterests(allInterests)
+        },
+      )
+
+      return () => unsubscribeAnnouncements()
+    } catch (error) {
+      console.error('Erro ao carregar interesses:', error)
+      setInterests([])
+    }
+  }
+
+  // Criar proposta quando o vendedor aceita
+  const createProposal = async (interest) => {
+    try {
+      const proposalData = {
+        seller_id: currentUser.uid,
+        buyer_id: interest.user_id,
+        interest_id: interest.id,
+        price: interest.price,
+        product_id: interest.product_id,
+        product_name: interest.product_name || 'Produto sem nome',
+        status: 'pendente',
+        created_at: new Date(),
+        updated_at: new Date(),
+      }
+
+      // Adicionar nova proposta à coleção
+      const newProposalRef = doc(collection(db, 'proposals'))
+      await setDoc(newProposalRef, proposalData)
+
+      console.log('Proposta criada com sucesso! ID:', newProposalRef.id)
+    } catch (error) {
+      console.error('Erro ao criar proposta:', error)
+    }
+  }
+
+  const handleAction = async (type, currentInterest) => {
+    if (!currentInterest) return
+
     // Salva o status do item atual
-    setStatus((prev) => ({ ...prev, [produtos[index].id]: type }))
+    setStatus((prev) => ({ ...prev, [currentInterest.id]: type }))
 
     // Define a direção da animação
     setDirection(type === 'accept' ? 'up' : 'down')
 
+    // Se aceitou, criar proposta
+    if (type === 'accept') {
+      await createProposal(currentInterest)
+    }
+
     // Avança para o próximo item após um pequeno delay para a animação
     setTimeout(() => {
-      if (index < produtos.length - 1) {
+      if (index < interests.length - 1) {
         setIndex(index + 1)
         setDirection(null)
       } else {
@@ -74,15 +238,14 @@ const HomePage = () => {
   }
 
   const handleWheel = (e) => {
+    if (!interests[index]) return
+
     if (e.deltaY < 0) {
-      handleAction('accept')
+      handleAction('accept', interests[index])
     } else if (e.deltaY > 0) {
-      handleAction('reject')
+      handleAction('reject', interests[index])
     }
   }
-
-  const current = produtos[index]
-  const next = produtos[index + 1]
 
   // Variantes de animação
   const cardVariants = {
@@ -92,7 +255,34 @@ const HomePage = () => {
     enter: { y: 0, opacity: 1, transition: { duration: 0.3 } },
   }
 
-  if (index >= produtos.length) {
+  if (loading) {
+    return (
+      <CContainer
+        className="py-4 d-flex justify-content-center align-items-center"
+        style={{ height: '70vh' }}
+      >
+        <div className="text-center">
+          <h2>Carregando...</h2>
+        </div>
+      </CContainer>
+    )
+  }
+
+  if (userRole !== 'vendedor') {
+    return (
+      <CContainer
+        className="py-4 d-flex justify-content-center align-items-center"
+        style={{ height: '70vh' }}
+      >
+        <div className="text-center">
+          <h2>Bem-vindo!</h2>
+          <p>Esta página é apenas para vendedores.</p>
+        </div>
+      </CContainer>
+    )
+  }
+
+  if (index >= interests.length) {
     return (
       <CContainer
         className="py-4 d-flex justify-content-center align-items-center"
@@ -106,6 +296,9 @@ const HomePage = () => {
     )
   }
 
+  const current = interests[index]
+  const next = interests[index + 1]
+
   return (
     <CContainer
       className="py-4 d-flex justify-content-center align-items-center"
@@ -117,9 +310,11 @@ const HomePage = () => {
         <CCol md={3}>
           <CCard className="card-descricao">
             <CCardBody className="card-descricao-body">
-              <CCardTitle className="card-title">{current?.nome}</CCardTitle>
-              <CCardSubtitle className="card-subtitle">{current?.descricao}</CCardSubtitle>
-              <CCardText className="card-price">{current?.preco}</CCardText>
+              <CCardTitle className="card-title">{current?.product_name || 'Produto'}</CCardTitle>
+              <CCardSubtitle className="card-subtitle">
+                {current?.description || 'Sem descrição'}
+              </CCardSubtitle>
+              <CCardText className="card-price">R$ {current?.price || '0'}</CCardText>
             </CCardBody>
           </CCard>
         </CCol>
@@ -135,7 +330,10 @@ const HomePage = () => {
               variants={cardVariants}
             >
               <CCard className="card-atual">
-                <CCardImage orientation="top" src={current?.imagem} />
+                <CCardImage
+                  orientation="top"
+                  src={current?.product_image || 'https://via.placeholder.com/300'}
+                />
                 <CCardBody>
                   <div className="d-flex justify-content-center gap-5 mt-3">
                     <CButton
@@ -143,7 +341,7 @@ const HomePage = () => {
                       variant="outline"
                       className="rounded-circle p-0 d-flex align-items-center justify-content-center"
                       style={{ width: '50px', height: '50px' }}
-                      onClick={() => handleAction('accept')}
+                      onClick={() => handleAction('accept', current)}
                     >
                       ✔️
                     </CButton>
@@ -152,7 +350,7 @@ const HomePage = () => {
                       variant="outline"
                       className="rounded-circle p-0 d-flex align-items-center justify-content-center"
                       style={{ width: '50px', height: '50px' }}
-                      onClick={() => handleAction('reject')}
+                      onClick={() => handleAction('reject', current)}
                     >
                       ❌
                     </CButton>
@@ -172,9 +370,12 @@ const HomePage = () => {
               transition={{ duration: 0.3 }}
             >
               <CCard className="card-proximo">
-                <CCardImage orientation="top" src={next?.imagem} />
+                <CCardImage
+                  orientation="top"
+                  src={next?.product_image || 'https://via.placeholder.com/300'}
+                />
                 <CCardBody>
-                  <CCardTitle>{next?.nome}</CCardTitle>
+                  <CCardTitle>{next?.product_name || 'Próximo produto'}</CCardTitle>
                 </CCardBody>
               </CCard>
             </motion.div>

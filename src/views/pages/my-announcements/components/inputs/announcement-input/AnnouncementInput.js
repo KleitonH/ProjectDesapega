@@ -4,7 +4,7 @@ import CIcon from '@coreui/icons-react'
 import { cilCamera, cilChevronLeft } from '@coreui/icons'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { db, storage, auth } from 'src/firebase/firebaseConfig'
-import { collection, getDocs, doc, addDoc, where, query, updateDoc } from 'firebase/firestore'
+import { collection, getDocs, doc, addDoc, where, query, updateDoc, getDoc } from 'firebase/firestore'
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
 
 const AnnouncementInput = () => {
@@ -52,9 +52,9 @@ const AnnouncementInput = () => {
     }
   }, [location.state])
 
+  // Carrega categorias, subcategorias e produtos
   useEffect(() => {
-    const loadData = async () => {
-      // 1. Carrega categorias primeiro
+    const loadCategories = async () => {
       const categoriesSnapshot = await getDocs(collection(db, 'categories'))
       const loadedCategories = categoriesSnapshot.docs.map((doc) => ({
         id: doc.id,
@@ -62,48 +62,90 @@ const AnnouncementInput = () => {
       }))
       setCategories(loadedCategories)
 
-      // 2. Se estiver editando, processa subcategorias
+      // Se estiver no modo de edição, carrega os dados do anúncio
       if (location.state?.editMode) {
         const { category_id, subcategory_id, product_id } = location.state.announcementData
-
-        // Define a categoria selecionada (dispara a lógica de subcategorias)
         setSelectedCategory(category_id)
 
-        // Espera o state atualizar e carrega subcategorias
+        // Carrega subcategorias da categoria selecionada
         const selectedCat = loadedCategories.find((cat) => cat.id === category_id)
         if (selectedCat?.subcategories) {
           setSubcategories(selectedCat.subcategories)
+          setSelectedSubcategory(subcategory_id)
 
-          // Verifica e define a subcategoria
-          if (
-            subcategory_id &&
-            selectedCat.subcategories.some((sub) => sub.id === subcategory_id)
-          ) {
-            setSelectedSubcategory(subcategory_id)
-
-            // 3. Carrega produtos após subcategoria ser definida
-            const productsQuery = query(
-              collection(db, 'products'),
-              where('subcategories_id', '==', subcategory_id),
-            )
-            const productsSnapshot = await getDocs(productsQuery)
-            const loadedProducts = productsSnapshot.docs.map((doc) => ({
-              id: doc.id,
-              ...doc.data(),
-            }))
-            setProducts(loadedProducts)
-
-            // Define o produto se existir
-            if (product_id && loadedProducts.some((prod) => prod.id === product_id)) {
-              setSelectedProduct(product_id)
-            }
-          }
+          // Carrega produtos da subcategoria selecionada
+          const productsQuery = query(
+            collection(db, 'products'),
+            where('subcategories_id', '==', subcategory_id),
+          )
+          const productsSnapshot = await getDocs(productsQuery)
+          const loadedProducts = productsSnapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          }))
+          setProducts(loadedProducts)
+          setSelectedProduct(product_id)
         }
       }
     }
 
-    loadData()
-  }, [location.state]) // Apenas location.state como dependência
+    loadCategories()
+  }, [location.state])
+
+  // Carrega subcategorias quando a categoria muda (modo criação)
+  useEffect(() => {
+    const loadSubcategories = async () => {
+      if (selectedCategory) {
+        const categoryDoc = await getDoc(doc(db, 'categories', selectedCategory))
+        if (categoryDoc.exists()) {
+          setSubcategories(categoryDoc.data().subcategories || [])
+        }
+      } else {
+        setSubcategories([])
+        setSelectedSubcategory('')
+        setProducts([])
+        setSelectedProduct('')
+      }
+    }
+
+    // Executa apenas no modo de criação ou quando a categoria muda
+    if (
+      !location.state?.editMode ||
+      selectedCategory !== location.state?.announcementData?.category_id
+    ) {
+      loadSubcategories()
+    }
+  }, [selectedCategory, location.state])
+
+  // Carrega produtos quando a subcategoria muda (modo criação)
+  useEffect(() => {
+    const loadProducts = async () => {
+      if (selectedSubcategory) {
+        const productsQuery = query(
+          collection(db, 'products'),
+          where('subcategories_id', '==', selectedSubcategory),
+        )
+        const productsSnapshot = await getDocs(productsQuery)
+        setProducts(
+          productsSnapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          })),
+        )
+      } else {
+        setProducts([])
+        setSelectedProduct('')
+      }
+    }
+
+    // Executa apenas no modo de criação ou quando a subcategoria muda
+    if (
+      !location.state?.editMode ||
+      selectedSubcategory !== location.state?.announcementData?.subcategory_id
+    ) {
+      loadProducts()
+    }
+  }, [selectedSubcategory, location.state])
 
   const handleImageChange = (event) => {
     const file = event.target.files[0]

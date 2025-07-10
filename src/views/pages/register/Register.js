@@ -39,6 +39,7 @@ const Register = () => {
 
       // Salva no Firestore (coleção "users", documento com ID do usuário)
       await setDoc(doc(db, 'users', user.uid), {
+        uid: user.uid,
         name,
         email,
         birthDate,
