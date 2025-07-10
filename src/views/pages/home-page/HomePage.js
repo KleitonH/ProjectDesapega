@@ -275,13 +275,19 @@ const HomePage = () => {
     }
   }
 
-  const handleAction = async (type, currentItem) => {
-    if (!currentItem) return
+  const [isProcessing, setIsProcessing] = useState(false)
 
-    setStatus((prev) => ({ ...prev, [currentItem.id]: type }))
-    setDirection(type === 'accept' ? 'up' : 'down')
+  const handleAction = async (type, currentItem) => {
+    // Bloqueia se já estiver processando ou se não houver item
+    if (!currentItem || isProcessing) return
+
+    // Ativa o lock
+    setIsProcessing(true)
 
     try {
+      setStatus((prev) => ({ ...prev, [currentItem.id]: type }))
+      setDirection(type === 'accept' ? 'up' : 'down')
+
       if (type === 'accept') {
         if (userRole === 'vendedor') {
           const finalPrice =
@@ -303,17 +309,19 @@ const HomePage = () => {
       }
     } catch (error) {
       console.error('Erro ao processar ação:', error)
+    } finally {
+      // Libera o lock após um delay mínimo
+      setTimeout(() => {
+        setIsProcessing(false)
+        if (index < interests.length - 1) {
+          setIndex(index + 1)
+          setDirection(null)
+          setEditingPriceId(null)
+        } else {
+          setIndex(index + 1)
+        }
+      }, 300)
     }
-
-    setTimeout(() => {
-      if (index < interests.length - 1) {
-        setIndex(index + 1)
-        setDirection(null)
-        setEditingPriceId(null)
-      } else {
-        setIndex(index + 1)
-      }
-    }, 300)
   }
 
   const handleWheel = (e) => {

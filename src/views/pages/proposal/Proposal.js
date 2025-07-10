@@ -135,6 +135,10 @@ const Proposal = () => {
         color = 'danger'
         text = 'Recusada'
         break
+      case 'finished':
+        color = 'primary'
+        text = 'Finalizada'
+        break
       default:
         color = 'secondary'
         text = 'Desconhecido'
