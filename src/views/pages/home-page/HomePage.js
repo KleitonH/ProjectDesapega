@@ -10,6 +10,7 @@ import {
   CButton,
   CCardSubtitle,
   CCardText,
+  CBadge,
 } from '@coreui/react'
 import './HomePage.css'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -390,11 +391,11 @@ const HomePage = () => {
             <CCardBody className="card-descricao-body">
               <CCardTitle className="card-title">{current?.product_name || 'Produto'}</CCardTitle>
 
-              {userRole === 'comprador' && (
+              {/* {userRole === 'comprador' && (
                 <CCardSubtitle className="seller-info">
                   Vendido por: {current?.seller_name || 'Vendedor'}
                 </CCardSubtitle>
-              )}
+              )} */}
 
               <CCardText className="price-display">
                 {userRole === 'comprador' &&
@@ -430,45 +431,38 @@ const HomePage = () => {
               </CCardText>
 
               {userRole === 'vendedor' && (
-                <CCardText
-                  className="card-price"
-                  onClick={() => {
-                    setEditingPriceId(current.id)
-                    // Inicializa com o preço atual se não foi editado antes
-                    if (priceEdits[current.id] === undefined) {
-                      setPriceEdits((prev) => ({ ...prev, [current.id]: current.price }))
-                    }
-                  }}
-                >
-                  {editingPriceId === current.id ? (
-                    <input
-                      type="number"
-                      min="0.01"
-                      step="0.01"
-                      value={priceEdits[current.id] ?? current.price}
-                      onChange={(e) => {
-                        const value = e.target.value
-                        if (value === '' || /^[1-9]\d*(\.\d{0,2})?$|^0(\.\d{0,2})?$/.test(value)) {
-                          const newValue = value === '' ? '' : parseFloat(value)
-                          setPriceEdits((prev) => ({
-                            ...prev,
-                            [current.id]: isNaN(newValue) ? '' : newValue,
-                          }))
-                        }
-                      }}
-                      onBlur={() => {
-                        if (priceEdits[current.id] === '' || priceEdits[current.id] <= 0) {
-                          setPriceEdits((prev) => {
-                            const newState = { ...prev }
-                            delete newState[current.id]
-                            return newState
-                          })
-                        }
-                        setEditingPriceId(null)
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          if (priceEdits[current.id] <= 0) {
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontWeight: '500' }}>Valor proposta:</span>
+                  <CCardText
+                    className="card-price"
+                    onClick={() => {
+                      setEditingPriceId(current.id)
+                      if (priceEdits[current.id] === undefined) {
+                        setPriceEdits((prev) => ({ ...prev, [current.id]: current.price }))
+                      }
+                    }}
+                  >
+                    {editingPriceId === current.id ? (
+                      <input
+                        type="number"
+                        min="0.01"
+                        step="0.01"
+                        value={priceEdits[current.id] ?? current.price}
+                        onChange={(e) => {
+                          const value = e.target.value
+                          if (
+                            value === '' ||
+                            /^[1-9]\d*(\.\d{0,2})?$|^0(\.\d{0,2})?$/.test(value)
+                          ) {
+                            const newValue = value === '' ? '' : parseFloat(value)
+                            setPriceEdits((prev) => ({
+                              ...prev,
+                              [current.id]: isNaN(newValue) ? '' : newValue,
+                            }))
+                          }
+                        }}
+                        onBlur={() => {
+                          if (priceEdits[current.id] === '' || priceEdits[current.id] <= 0) {
                             setPriceEdits((prev) => {
                               const newState = { ...prev }
                               delete newState[current.id]
@@ -476,18 +470,36 @@ const HomePage = () => {
                             })
                           }
                           setEditingPriceId(null)
-                        }
-                      }}
-                      autoFocus
-                      className="price-input"
-                    />
-                  ) : (
-                    `R$ ${(priceEdits[current.id] ?? current.price).toLocaleString('pt-BR', {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}`
-                  )}
-                </CCardText>
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            if (priceEdits[current.id] <= 0) {
+                              setPriceEdits((prev) => {
+                                const newState = { ...prev }
+                                delete newState[current.id]
+                                return newState
+                              })
+                            }
+                            setEditingPriceId(null)
+                          }
+                        }}
+                        autoFocus
+                        className="price-input"
+                        style={{
+                          width: '100px',
+                          padding: '4px 8px',
+                          border: '1px solid #ddd',
+                          borderRadius: '4px',
+                        }}
+                      />
+                    ) : (
+                      `R$ ${(priceEdits[current.id] ?? current.price).toLocaleString('pt-BR', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}`
+                    )}
+                  </CCardText>
+                </div>
               )}
             </CCardBody>
           </CCard>

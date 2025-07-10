@@ -219,7 +219,7 @@ const InterestInput = () => {
             {pageTitle}
           </h1>
           <CRow>
-            <CCol md={6}>
+            <CCol md={6} className="mx-auto">
               <CForm onSubmit={handleSubmit}>
                 <p className="">Categoria</p>
                 <CFormSelect

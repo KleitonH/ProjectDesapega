@@ -53,9 +53,9 @@ const AppHeader = () => {
           <CIcon icon={cilMenu} size="lg" />
         </CHeaderToggler>
         <CHeaderNav className="ms-auto gap-4">
-          <CNavItem>
+          <div className="position-absolute top-50 start-50 translate-middle">
             <ToggleButton />
-          </CNavItem>
+          </div>
           <CNavItem>
             <CNavLink href="#">
               <CIcon icon={cilBell} size="lg" />

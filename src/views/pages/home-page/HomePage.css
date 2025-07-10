@@ -40,12 +40,13 @@
 
 .single-price {
   font-size: 1.5rem;
-  color: #000;
+  color: #1da149;
   font-weight: bold;
 }
 
 .price-input {
   width: 120px;
+  color: #3c4b64;
   border: 2px solid #3c4b64;
   border-radius: 5px;
   padding: 8px;
