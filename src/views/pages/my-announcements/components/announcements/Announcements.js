@@ -83,6 +83,7 @@ const Announcements = () => {
           subcategory_id: announcement.subcategory_id,
           price: announcement.price,
           cep: announcement.cep,
+          image_url: announcement.image_url,
           // Adicione outros campos necessários para edição
         },
       },
@@ -156,13 +157,13 @@ const Announcements = () => {
                         <>
                           <CImage
                             src={
-                              announcement.product.image_url || 'https://via.placeholder.com/150'
+                              announcement.image_url || 'https://via.placeholder.com/150'
                             }
                             alt={announcement.product.label}
                             width={170}
                             height="auto"
                           />
-                          <div className="mt-2">{announcement.product.name}</div>
+                          <div className="mt-2">{announcement.product.label}</div>
                         </>
                       )}
                     </CCol>

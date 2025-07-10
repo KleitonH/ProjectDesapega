@@ -4,7 +4,16 @@ import CIcon from '@coreui/icons-react'
 import { cilCamera, cilChevronLeft } from '@coreui/icons'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { db, storage, auth } from 'src/firebase/firebaseConfig'
-import { collection, getDocs, doc, addDoc, where, query, updateDoc, getDoc } from 'firebase/firestore'
+import {
+  collection,
+  getDocs,
+  doc,
+  addDoc,
+  where,
+  query,
+  updateDoc,
+  getDoc,
+} from 'firebase/firestore'
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
 
 const AnnouncementInput = () => {
@@ -31,6 +40,8 @@ const AnnouncementInput = () => {
   const [cep, setCep] = useState('')
 
   const pageTitle = editMode ? 'Editar Anúncio' : 'Cadastro de Anúncio'
+  const [isUploading, setIsUploading] = useState(false)
+  const [currentImagePath, setCurrentImagePath] = useState(null)
   // Carrega categorias ao montar o componente
   useEffect(() => {
     if (location.state?.editMode) {
@@ -48,6 +59,11 @@ const AnnouncementInput = () => {
       // Se tiver imagem no anúncio, carrega também
       if (announcementData.image_url) {
         setImagem(announcementData.image_url)
+        // Extrai o caminho da imagem da URL (assumindo padrão Firebase Storage)
+        const matches = announcementData.image_url.match(/announcements%2F(.+?)%2F/)
+        if (matches && matches[1]) {
+          setCurrentImagePath(`announcements/${matches[1]}/`)
+        }
       }
     }
   }, [location.state])
@@ -150,6 +166,18 @@ const AnnouncementInput = () => {
   const handleImageChange = (event) => {
     const file = event.target.files[0]
     if (file) {
+      // Validação do tipo de arquivo
+      if (!file.type.match('image.*')) {
+        alert('Por favor, selecione um arquivo de imagem (JPEG, PNG, etc.)')
+        return
+      }
+
+      // Validação do tamanho do arquivo (exemplo: 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        alert('A imagem deve ter menos de 5MB')
+        return
+      }
+
       setImagem(URL.createObjectURL(file))
       setImageFile(file)
     }
@@ -163,6 +191,7 @@ const AnnouncementInput = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    setIsUploading(true)
 
     try {
       const user = auth.currentUser
@@ -171,6 +200,21 @@ const AnnouncementInput = () => {
         return
       }
 
+      let imageUrl = null
+
+      if (imageFile) {
+        // Define um nome fixo para a imagem (sempre será "main_image")
+        const imageName = 'main_image'
+
+        // Caminho no Storage: announcements/{announcementId}/main_image
+        const storageRef = ref(storage, `announcements/${announcementId}/${imageName}`)
+
+        // Faz o upload da nova imagem (substitui automaticamente a existente)
+        const snapshot = await uploadBytes(storageRef, imageFile)
+        imageUrl = await getDownloadURL(snapshot.ref)
+      }
+
+      // Dados do anúncio para atualização
       const announcementData = {
         product_id: selectedProduct,
         category_id: selectedCategory,
@@ -179,18 +223,15 @@ const AnnouncementInput = () => {
         cep,
         user_id: user.uid,
         status: 'active',
-        ...(imageFile &&
-          {
-            // Se tiver nova imagem, será processado abaixo
-          }),
+        ...(imageUrl && { image_url: imageUrl }),
       }
 
       if (editMode) {
-        // Lógica para atualizar o anúncio existente
+        // Atualiza o anúncio existente
         await updateDoc(doc(db, 'announcements', announcementId), announcementData)
         alert('Anúncio atualizado com sucesso!')
       } else {
-        // Lógica para criar novo anúncio
+        // Cria novo anúncio
         announcementData.created_at = new Date()
         await addDoc(collection(db, 'announcements'), announcementData)
         alert('Anúncio criado com sucesso!')
@@ -200,6 +241,8 @@ const AnnouncementInput = () => {
     } catch (error) {
       console.error('Erro:', error)
       alert(`Erro ao ${editMode ? 'atualizar' : 'criar'} anúncio. Tente novamente.`)
+    } finally {
+      setIsUploading(false)
     }
   }
 
@@ -377,7 +420,7 @@ const AnnouncementInput = () => {
               }}
               className="px-4"
             >
-              Publicar
+              {isUploading ? 'Enviando...' : 'Publicar'}
             </CButton>
           </div>
         </div>
