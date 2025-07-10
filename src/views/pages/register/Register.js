@@ -22,7 +22,7 @@ const Register = () => {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [birthDate, setBirthDate] = useState('')
+  const [birthday, setBirthDay] = useState('')
   const [error, setError] = useState(null)
   const navigate = useNavigate()
 
@@ -42,7 +42,7 @@ const Register = () => {
         uid: user.uid,
         name,
         email,
-        birthDate,
+        birthday,
         createdAt: new Date().toISOString(),
         role: 'comprador',
       })
@@ -127,8 +127,8 @@ const Register = () => {
                 </CInputGroupText>
                 <CFormInput
                   type="date"
-                  value={birthDate}
-                  onChange={(e) => setBirthDate(e.target.value)}
+                  value={birthday}
+                  onChange={(e) => setBirthDay(e.target.value)}
                   style={{ backgroundColor: '#D9D9D9', color: 'black' }}
                 />
               </CInputGroup>
