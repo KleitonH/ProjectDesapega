@@ -1,17 +1,26 @@
 .image-style {
   width: 100%;
-  height: auto;
-  display: block;
+  height: 150px;
+  object-fit: contain;
+  padding: 10px;
 }
 
-.button-style {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 45px;
-  width: 45px;
-  background: white;
-  border-radius: 50%;
-  padding: 2px;
-  border: none;
+.badge {
+  margin-left: 0.5rem;
+  font-size: 0.8rem;
+  padding: 0.35em 0.65em;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.card {
+  transition: transform 0.2s;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }

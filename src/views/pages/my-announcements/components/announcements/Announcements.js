@@ -1,57 +1,111 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { CButton, CCard, CCol, CRow, CImage } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import { cilTrash, cilPencil, cilPlus } from '@coreui/icons'
 import './Announcements.css'
 import { useNavigate } from 'react-router-dom'
+import { db, auth } from 'src/firebase/firebaseConfig'
+import { collection, query, where, getDocs, doc, deleteDoc, getDoc } from 'firebase/firestore'
+import { onAuthStateChanged } from 'firebase/auth'
 
 const Announcements = () => {
   const navigate = useNavigate()
+  const [announcements, setAnnouncements] = useState([])
+  const [currentUser, setCurrentUser] = useState(null)
+  const [loading, setLoading] = useState(true)
 
-  const produtos = [
-    {
-      id: 1,
-      titulo: 'Playstation 5 Pro',
-      valor: '2900',
-      imagem:
-        'https://rukminim2.flixcart.com/blobio/400/400/20181015/blobio-20181015_ql5avu84.jpg?q=90',
-    },
-    {
-      id: 2,
-      titulo: 'Xbox Series X',
-      valor: '2700',
-      imagem:
-        'https://rukminim2.flixcart.com/blobio/400/400/20181015/blobio-20181015_ql5avu84.jpg?q=90',
-    },
-    {
-      id: 3,
-      titulo: 'Notebook Gamer Lenovo',
-      valor: '5200',
-      imagem:
-        'https://rukminim2.flixcart.com/blobio/400/400/20181015/blobio-20181015_ql5avu84.jpg?q=90',
-    },
-    {
-      id: 4,
-      titulo: 'TV 4K Samsung 55"',
-      valor: '2600',
-      imagem:
-        'https://rukminim2.flixcart.com/blobio/400/400/20181015/blobio-20181015_ql5avu84.jpg?q=90',
-    },
-    {
-      id: 5,
-      titulo: 'Cadeira Gamer ThunderX3',
-      valor: '1100',
-      imagem:
-        'https://rukminim2.flixcart.com/blobio/400/400/20181015/blobio-20181015_ql5avu84.jpg?q=90',
-    },
-    {
-      id: 6,
-      titulo: 'Secadora de roupa',
-      valor: '420',
-      imagem:
-        'https://rukminim2.flixcart.com/blobio/400/400/20181015/blobio-20181015_ql5avu84.jpg?q=90',
-    },
-  ]
+  // Busca anúncios do usuário logado
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      setCurrentUser(user)
+      if (user) {
+        await fetchUserAnnouncements(user.uid)
+      } else {
+        setAnnouncements([])
+      }
+      setLoading(false)
+    })
+
+    return () => unsubscribe()
+  }, [])
+
+  const fetchUserAnnouncements = async (userId) => {
+    try {
+      const q = query(collection(db, 'announcements'), where('user_id', '==', userId))
+
+      const querySnapshot = await getDocs(q)
+      const announcementsData = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }))
+
+      // Busca os dados completos do produto para cada anúncio
+      const announcementsWithProducts = await Promise.all(
+        announcementsData.map(async (announcement) => {
+          const productDoc = await getDoc(doc(db, 'products', announcement.product_id))
+          const categoryDoc = await getDoc(doc(db, 'categories', announcement.category_id))
+
+          return {
+            ...announcement,
+            product: productDoc.exists() ? productDoc.data() : null,
+            category: categoryDoc.exists() ? categoryDoc.data() : null,
+          }
+        }),
+      )
+
+      setAnnouncements(announcementsWithProducts)
+    } catch (error) {
+      console.error('Erro ao buscar anúncios:', error)
+      setAnnouncements([])
+    }
+  }
+
+  const handleDelete = async (announcementId) => {
+    if (window.confirm('Tem certeza que deseja excluir este anúncio?')) {
+      try {
+        await deleteDoc(doc(db, 'announcements', announcementId))
+        setAnnouncements(announcements.filter((a) => a.id !== announcementId))
+      } catch (error) {
+        console.error('Erro ao excluir anúncio:', error)
+        alert('Erro ao excluir anúncio. Tente novamente.')
+      }
+    }
+  }
+
+  const handleEdit = (announcement) => {
+    navigate('/announcement-input', {
+      state: {
+        editMode: true,
+        announcementData: {
+          id: announcement.id,
+          product_id: announcement.product_id,
+          category_id: announcement.category_id,
+          subcategory_id: announcement.subcategory_id,
+          price: announcement.price,
+          cep: announcement.cep,
+          image_url: announcement.image_url,
+          // Adicione outros campos necessários para edição
+        },
+      },
+    })
+  }
+
+  if (loading) {
+    return <div className="container mt-4">Carregando...</div>
+  }
+
+  if (!currentUser) {
+    return (
+      <div className="container mt-4">
+        <CCard className="p-4">
+          <h3>Você precisa estar logado para ver seus anúncios</h3>
+          <CButton color="primary" onClick={() => navigate('/login')}>
+            Fazer Login
+          </CButton>
+        </CCard>
+      </div>
+    )
+  }
 
   return (
     <div className="container mt-4">
@@ -74,47 +128,72 @@ const Announcements = () => {
             </CCol>
           </CRow>
 
-          <CRow className="mt-4">
-            <CCol md={4} className="header-style">
-              Imagem do Produto
-            </CCol>
-            <CCol md={4} className="header-style">
-              Valor de interesse
-            </CCol>
-            <CCol md={4} className="header-style">
-              Ações
-            </CCol>
-          </CRow>
-
-          {produtos.map((produto) => (
-            <div key={produto.id}>
-              <CRow className="mt-4 align-items-center">
-                <CCol md={4} className="cell-style">
-                  <CImage src={produto.imagem} alt={produto.titulo} width={170} height="auto" />
+          {announcements.length === 0 ? (
+            <div className="text-center py-5">
+              <h4>Você ainda não tem anúncios cadastrados</h4>
+            </div>
+          ) : (
+            <>
+              <CRow className="mt-4">
+                <CCol md={4} className="header-style">
+                  Produto
                 </CCol>
-                <CCol md={4} className="cell-style">
-                  R$ {produto.valor}
+                <CCol md={2} className="header-style">
+                  Categoria
                 </CCol>
-                <CCol md={4} className="cell-style">
-                  <CButton size="m" className="me-2">
-                    <CIcon size="lg" icon={cilPencil} className="me-2" />
-                    Editar
-                  </CButton>
-                  <CButton size="m">
-                    <CIcon
-                      size="lg"
-                      icon={cilTrash}
-                      className="me-2"
-                      style={{ '--ci-primary-color': 'red' }}
-                    />
-                    Excluir
-                  </CButton>
+                <CCol md={2} className="header-style">
+                  Valor
+                </CCol>
+                <CCol md={4} className="header-style">
+                  Ações
                 </CCol>
               </CRow>
 
-              <div style={{ borderTop: '2px solid #2E323D', margin: '20px 0' }}></div>
-            </div>
-          ))}
+              {announcements.map((announcement) => (
+                <div key={announcement.id}>
+                  <CRow className="mt-4 align-items-center">
+                    <CCol md={4} className="cell-style">
+                      {announcement.product && (
+                        <>
+                          <CImage
+                            src={
+                              announcement.image_url || 'https://via.placeholder.com/150'
+                            }
+                            alt={announcement.product.label}
+                            width={170}
+                            height="auto"
+                          />
+                          <div className="mt-2">{announcement.product.label}</div>
+                        </>
+                      )}
+                    </CCol>
+                    <CCol md={2} className="cell-style">
+                      {announcement.category?.label || 'N/A'}
+                    </CCol>
+                    <CCol md={2} className="cell-style">
+                      R$ {announcement.price.toFixed(2)}
+                    </CCol>
+                    <CCol md={4} className="cell-style">
+                      <CButton size="m" className="me-2" onClick={() => handleEdit(announcement)}>
+                        <CIcon size="lg" icon={cilPencil} className="me-2" />
+                        Editar
+                      </CButton>
+                      <CButton
+                        size="m"
+                        color="danger"
+                        onClick={() => handleDelete(announcement.id)}
+                      >
+                        <CIcon size="lg" icon={cilTrash} className="me-2" />
+                        Excluir
+                      </CButton>
+                    </CCol>
+                  </CRow>
+
+                  <div style={{ borderTop: '2px solid #2E323D', margin: '20px 0' }}></div>
+                </div>
+              ))}
+            </>
+          )}
         </div>
       </CCard>
     </div>

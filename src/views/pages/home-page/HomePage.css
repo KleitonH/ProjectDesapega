@@ -1,19 +1,69 @@
-.card-title {
-  font-size: 1.75rem;
+/* Estilos para comprador */
+.buyer-container {
+  background-color: #f8f9fa;
+}
+
+.buyer-card {
+  border: 2px solid #007aff;
+  border-radius: 10px;
+  background-color: white;
+}
+
+.buyer-card .card-title {
+  color: #007aff;
+  font-size: 1.5rem;
+}
+
+.seller-info {
+  color: #5856d6;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
+/* Estilos para preços */
+.price-display {
+  margin: 1rem 0;
+  text-align: center;
+}
+
+.original-price {
+  font-size: 0.9rem;
+  color: #ff3b30;
+  text-decoration: line-through;
+}
+
+.current-price {
+  font-size: 1.5rem;
+  color: #34c759;
   font-weight: bold;
 }
 
-.card-subtitle {
+.single-price {
+  font-size: 1.5rem;
+  color: #000;
+  font-weight: bold;
+}
+
+.price-input {
+  width: 120px;
+  border: 2px solid #3c4b64;
+  border-radius: 5px;
+  padding: 8px;
+  text-align: center;
   font-size: 1rem;
-  color: #6c757d; /* Cor cinza do Bootstrap */
-}
-
-.card-price {
-  font-size: 1.75rem;
   font-weight: bold;
-  color: #28a
+  outline: none;
+  background-color: white;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
-.text-muted {
-  font-size: 1.4rem;
+.price-input:focus {
+  border-color: #321fdb;
+  box-shadow: 0 0 0 3px rgba(50, 31, 219, 0.25);
+}
+
+/* Botão de recusa desabilitado para vendedores */
+button[disabled].btn-outline-danger {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
