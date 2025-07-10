@@ -1,25 +1,163 @@
-import React, { useRef, useState } from 'react'
-import { CButton, CCard, CImage, CCol, CForm, CFormInput, CRow } from '@coreui/react'
+import React, { useRef, useState, useEffect } from 'react'
+import { CButton, CCard, CImage, CCol, CForm, CFormInput, CRow, CFormSelect } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import { cilCamera, cilChevronLeft } from '@coreui/icons'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
+import { db, storage, auth } from 'src/firebase/firebaseConfig'
+import { collection, getDocs, doc, addDoc, where, query, updateDoc } from 'firebase/firestore'
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
 
 const AnnouncementInput = () => {
   const navigate = useNavigate()
-
+  const location = useLocation()
   const [imagem, setImagem] = useState(null)
+  const [imageFile, setImageFile] = useState(null)
   const inputRef = useRef(null)
+
+  // Estados para os seletores hierárquicos
+  const [editMode, setEditMode] = useState(false)
+  const [announcementId, setAnnouncementId] = useState(null)
+  const [categories, setCategories] = useState([])
+  const [subcategories, setSubcategories] = useState([])
+  const [products, setProducts] = useState([])
+
+  // Valores selecionados
+  const [selectedCategory, setSelectedCategory] = useState('')
+  const [selectedSubcategory, setSelectedSubcategory] = useState('')
+  const [selectedProduct, setSelectedProduct] = useState('')
+
+  // Outros campos do formulário
+  const [price, setPrice] = useState('')
+  const [cep, setCep] = useState('')
+
+  const pageTitle = editMode ? 'Editar Anúncio' : 'Cadastro de Anúncio'
+  // Carrega categorias ao montar o componente
+  useEffect(() => {
+    if (location.state?.editMode) {
+      setEditMode(true)
+      setAnnouncementId(location.state.announcementData.id)
+
+      // Preenche os campos do formulário
+      const { announcementData } = location.state
+      setSelectedCategory(announcementData.category_id || '')
+      setSelectedSubcategory(announcementData.subcategory_id || '')
+      setSelectedProduct(announcementData.product_id || '')
+      setPrice(announcementData.price?.toString() || '')
+      setCep(announcementData.cep || '')
+
+      // Se tiver imagem no anúncio, carrega também
+      if (announcementData.image_url) {
+        setImagem(announcementData.image_url)
+      }
+    }
+  }, [location.state])
+
+  useEffect(() => {
+    const loadData = async () => {
+      // 1. Carrega categorias primeiro
+      const categoriesSnapshot = await getDocs(collection(db, 'categories'))
+      const loadedCategories = categoriesSnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }))
+      setCategories(loadedCategories)
+
+      // 2. Se estiver editando, processa subcategorias
+      if (location.state?.editMode) {
+        const { category_id, subcategory_id, product_id } = location.state.announcementData
+
+        // Define a categoria selecionada (dispara a lógica de subcategorias)
+        setSelectedCategory(category_id)
+
+        // Espera o state atualizar e carrega subcategorias
+        const selectedCat = loadedCategories.find((cat) => cat.id === category_id)
+        if (selectedCat?.subcategories) {
+          setSubcategories(selectedCat.subcategories)
+
+          // Verifica e define a subcategoria
+          if (
+            subcategory_id &&
+            selectedCat.subcategories.some((sub) => sub.id === subcategory_id)
+          ) {
+            setSelectedSubcategory(subcategory_id)
+
+            // 3. Carrega produtos após subcategoria ser definida
+            const productsQuery = query(
+              collection(db, 'products'),
+              where('subcategories_id', '==', subcategory_id),
+            )
+            const productsSnapshot = await getDocs(productsQuery)
+            const loadedProducts = productsSnapshot.docs.map((doc) => ({
+              id: doc.id,
+              ...doc.data(),
+            }))
+            setProducts(loadedProducts)
+
+            // Define o produto se existir
+            if (product_id && loadedProducts.some((prod) => prod.id === product_id)) {
+              setSelectedProduct(product_id)
+            }
+          }
+        }
+      }
+    }
+
+    loadData()
+  }, [location.state]) // Apenas location.state como dependência
 
   const handleImageChange = (event) => {
     const file = event.target.files[0]
     if (file) {
       setImagem(URL.createObjectURL(file))
+      setImageFile(file)
     }
   }
 
   const handleClick = () => {
     if (inputRef.current) {
       inputRef.current.click()
+    }
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+
+    try {
+      const user = auth.currentUser
+      if (!user) {
+        alert('Você precisa estar logado para criar/editar um anúncio.')
+        return
+      }
+
+      const announcementData = {
+        product_id: selectedProduct,
+        category_id: selectedCategory,
+        subcategory_id: selectedSubcategory,
+        price: parseFloat(price),
+        cep,
+        user_id: user.uid,
+        status: 'active',
+        ...(imageFile &&
+          {
+            // Se tiver nova imagem, será processado abaixo
+          }),
+      }
+
+      if (editMode) {
+        // Lógica para atualizar o anúncio existente
+        await updateDoc(doc(db, 'announcements', announcementId), announcementData)
+        alert('Anúncio atualizado com sucesso!')
+      } else {
+        // Lógica para criar novo anúncio
+        announcementData.created_at = new Date()
+        await addDoc(collection(db, 'announcements'), announcementData)
+        alert('Anúncio criado com sucesso!')
+      }
+
+      navigate('/announcements')
+    } catch (error) {
+      console.error('Erro:', error)
+      alert(`Erro ao ${editMode ? 'atualizar' : 'criar'} anúncio. Tente novamente.`)
     }
   }
 
@@ -36,13 +174,15 @@ const AnnouncementInput = () => {
 
         <div className="mx-auto" style={{ maxWidth: '850px', width: '100%' }}>
           <h1 style={{ marginBottom: '3rem', marginTop: '1rem', textAlign: 'center' }}>
-            Cadastro de Anúncio
+            {pageTitle}
           </h1>
           <CRow>
             <CCol md={6}>
-              <CForm style={{}}>
-                <p className="">Produto</p>
-                <CFormInput
+              <CForm onSubmit={handleSubmit}>
+                <p className="">Categoria</p>
+                <CFormSelect
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
                   style={{
                     marginBottom: '15px',
                     borderColor: 'rgb(29, 34, 43)',
@@ -50,12 +190,66 @@ const AnnouncementInput = () => {
                     backgroundColor: 'white',
                     color: 'black',
                   }}
-                  placeholder="Digite o nome do produto"
-                  autoComplete="produto"
-                />
+                  required
+                >
+                  <option value="">Selecione uma categoria</option>
+                  {categories.map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.label}
+                    </option>
+                  ))}
+                </CFormSelect>
+
+                <p className="">Subcategoria</p>
+                <CFormSelect
+                  value={selectedSubcategory}
+                  onChange={(e) => setSelectedSubcategory(e.target.value)}
+                  style={{
+                    marginBottom: '15px',
+                    borderColor: 'rgb(29, 34, 43)',
+                    borderWidth: '3px',
+                    backgroundColor: 'white',
+                    color: 'black',
+                  }}
+                  disabled={!selectedCategory}
+                  required
+                >
+                  <option value="">Selecione uma subcategoria</option>
+                  {subcategories.map((subcat, index) => (
+                    <option key={index} value={subcat.id}>
+                      {subcat.label}
+                    </option>
+                  ))}
+                </CFormSelect>
+
+                <p className="">Produto</p>
+                <CFormSelect
+                  value={selectedProduct}
+                  onChange={(e) => setSelectedProduct(e.target.value)}
+                  style={{
+                    marginBottom: '15px',
+                    borderColor: 'rgb(29, 34, 43)',
+                    borderWidth: '3px',
+                    backgroundColor: 'white',
+                    color: 'black',
+                  }}
+                  disabled={!selectedSubcategory}
+                  required
+                >
+                  <option value="">Selecione um produto</option>
+                  {products.map((product) => (
+                    <option key={product.id} value={product.id}>
+                      {product.label}
+                    </option>
+                  ))}
+                </CFormSelect>
 
                 <p className="">Preço (R$)</p>
                 <CFormInput
+                  type="number"
+                  step="0.01"
+                  value={price}
+                  onChange={(e) => setPrice(e.target.value)}
                   style={{
                     marginBottom: '15px',
                     borderColor: 'rgb(29, 34, 43)',
@@ -65,10 +259,13 @@ const AnnouncementInput = () => {
                   }}
                   placeholder="Digite o preço (R$)"
                   autoComplete="preco"
+                  required
                 />
 
                 <p className="">Localização (CEP)</p>
                 <CFormInput
+                  value={cep}
+                  onChange={(e) => setCep(e.target.value)}
                   style={{
                     marginBottom: '15px',
                     borderColor: 'rgb(29, 34, 43)',
@@ -78,6 +275,7 @@ const AnnouncementInput = () => {
                   }}
                   placeholder="Digite o CEP"
                   autoComplete="localizacao"
+                  required
                 />
               </CForm>
             </CCol>
@@ -119,11 +317,14 @@ const AnnouncementInput = () => {
                 ref={inputRef}
                 onChange={handleImageChange}
                 style={{ display: 'none' }}
+                required
               />
             </CCol>
           </CRow>
           <div className="d-flex justify-content-center">
             <CButton
+              type="submit"
+              onClick={handleSubmit}
               style={{
                 backgroundColor: '#3A4458',
                 color: 'white',
